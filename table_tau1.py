@@ -32,7 +32,8 @@ d_offset = nt*ni*nc*np.arange(nd)
 i_offset = nt*nc*(np.arange(intensities.size,0,-1)-1) # intensities *decrease* through the array
 t_offset = nc*np.arange(temps.size)
 
-taus = -np.log(d[:,12])
+#taus = -np.log(d[:,12])
+taus = d[:,12]
 
 tau_one = np.zeros((ni,nd,nt))
 

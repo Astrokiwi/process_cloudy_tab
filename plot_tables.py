@@ -7,7 +7,6 @@ import pylab as P
 #from joblib import Parallel, delayed
 
 # if re-running in same name-space, don't need to reload the data
-# this doesn't seem to work now?
 if ( not 'd_in' in dir() ):
     print("Loading in table")
     # load in giant file
@@ -40,7 +39,8 @@ for cutoff in cutoffs:
     d = np.copy(d_in) # so we don't repeat the logging, but we can change the logging without having to read in again
 
     # use tau for x axis
-    d[:,4] = -np.log(d[:,12])
+    #d[:,4] = -np.log(d[:,12])
+    d[:,4] = d[:,12] # should already be done 
 
     # set bound (optional)
     #coldens_cutoff = 1.e25
@@ -58,7 +58,7 @@ for cutoff in cutoffs:
     # d = np.vstack((d.T,x)).T # add to array - 14th column
     # d[:,13] = np.log10(d[:,13]) # and log this
 
-    d[:,12] = -np.log(d[:,12]) # convert from exp(-tau) to tau
+    #d[:,12] = -np.log(d[:,12]) # convert from exp(-tau) to tau # should already be done
     #d[:,12] = -np.log(np.clip(d[:,12],None,1.+1.e-10)) # convert from exp(-tau) to tau
     # d[:,12]/=d[:,4] # divide by column density to get more "visibility" at low column density - doesn't work, just gives flat stuff :/
 
