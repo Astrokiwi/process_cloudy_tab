@@ -6,13 +6,15 @@ mpl.use('Agg')
 
 import pylab as P
 
+insert_dusty = True
 
 # if re-running in same name-space, don't need to reload the data
 # this doesn't seem to work now?
 if ( not 'd_in' in dir() ):
     print("Loading in table")
     # load in giant file
-    d_in = np.loadtxt("tables_251017.txt",skiprows=1)
+    #d_in = np.loadtxt("tables_021117.txt",skiprows=1)
+    d_in = np.loadtxt("nodust_021117.txt",skiprows=1)
 else:
     print("Using table already in memory - hopefully you want to do this!")
 
@@ -31,6 +33,12 @@ nc = d.shape[0]/nd/nt/ni
 d_offset = nt*ni*nc*np.arange(nd)
 i_offset = nt*nc*(np.arange(intensities.size,0,-1)-1) # intensities *decrease* through the array
 t_offset = nc*np.arange(temps.size)
+
+if insert_dusty:
+    s = d.shape[0]
+    d = np.insert(d,5,np.zeros(s),axis=1)
+    d = np.insert(d,9,np.zeros(s),axis=1)
+
 
 #taus = -np.log(d[:,12])
 taus = d[:,12]
@@ -75,7 +83,8 @@ for depth_target in range(16,27):
     P.colorbar(v)
     fig.tight_layout()
     depth_str = "%d"%depth_target
-    P.savefig("../../figures/tau_at_depth"+depth_str+".png")
+    #P.savefig("../../figures/tau_at_depth"+depth_str+".png")
+    P.savefig("../../figures/nodust_tau_at_depth"+depth_str+".png")
 
     P.close('All')
 

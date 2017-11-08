@@ -8,7 +8,7 @@ import sys
 #d = np.loadtxt("dg.txt",skiprows=1)
 #d = np.loadtxt("opac.txt",skiprows=1)
 #d = np.loadtxt("cooling_final.txt",skiprows=1)
-d = np.loadtxt("tables_161017.txt",skiprows=1)
+d = np.loadtxt("tables_021117.txt",skiprows=1)
 
 # intensities = np.linspace(3.748188,7.748188,num=9)
 # # temps = np.linspace(1.,8.,29)

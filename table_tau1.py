@@ -12,7 +12,7 @@ import pylab as P
 if ( not 'd_in' in dir() ):
     print("Loading in table")
     # load in giant file
-    d_in = np.loadtxt("tables_251017.txt",skiprows=1)
+    d_in = np.loadtxt("tables_021117.txt",skiprows=1)
 else:
     print("Using table already in memory - hopefully you want to do this!")
 

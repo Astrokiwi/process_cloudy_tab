@@ -6,11 +6,14 @@ mpl.use('Agg')
 import pylab as P
 #from joblib import Parallel, delayed
 
+insert_dusty = False
+
 # if re-running in same name-space, don't need to reload the data
 if ( not 'd_in' in dir() ):
     print("Loading in table")
     # load in giant file
-    d_in = np.loadtxt("tables_251017.txt",skiprows=1)
+    d_in = np.loadtxt("tables_021117.txt",skiprows=1)
+    #d_in = np.loadtxt("nodust_021117.txt",skiprows=1)
 else:
     print("Using table already in memory - hopefully you want to do this!")
 
@@ -32,15 +35,24 @@ print("Working on table")
 
 #cutoffs = [23,24,25,26]
 #cutoffs = [24]
-cutoffs = [2.]
+
+#cutoffs = [.5]
+cutoffs = [4.e22]
 
 for cutoff in cutoffs:
 
     d = np.copy(d_in) # so we don't repeat the logging, but we can change the logging without having to read in again
 
+    if insert_dusty:
+        s = d.shape[0]
+        d = np.insert(d,5,np.zeros(s),axis=1)
+        d = np.insert(d,9,np.zeros(s),axis=1)
+
     # use tau for x axis
     #d[:,4] = -np.log(d[:,12])
-    d[:,4] = d[:,12] # should already be done 
+    #d[:,4] = d[:,12] # should already be logged 
+
+
 
     # set bound (optional)
     #coldens_cutoff = 1.e25
@@ -58,13 +70,13 @@ for cutoff in cutoffs:
     # d = np.vstack((d.T,x)).T # add to array - 14th column
     # d[:,13] = np.log10(d[:,13]) # and log this
 
-    #d[:,12] = -np.log(d[:,12]) # convert from exp(-tau) to tau # should already be done
+    #d[:,12] = -np.log(d[:,12]) # convert from exp(-tau) to tau # should already be done
     #d[:,12] = -np.log(np.clip(d[:,12],None,1.+1.e-10)) # convert from exp(-tau) to tau
     # d[:,12]/=d[:,4] # divide by column density to get more "visibility" at low column density - doesn't work, just gives flat stuff :/
 
     #d[:,4:9] = np.log10(d[:,4:9]) # log most dependent variables, plus column density (other independent variables are already logged) (don't log dust fraction)
     d[:,5:9] = np.log10(d[:,5:9]) # log most dependent variables, BUT NOT column density (other independent variables are already logged) (don't log dust fraction)
-    d[:,10:12] = np.log10(d[:,10:12]) # log opacities too
+    #d[:,10:12] = np.log10(d[:,10:12]) # log opacities too
     #d[:,12] = np.log10(d[:,12]) # log tau too
 
 
@@ -99,7 +111,9 @@ for cutoff in cutoffs:
     titles = ["tgrain","heat","cool","prad","dg","kabs","kscat","tau"]
     #toplot = [False,False,False,True,False,False,False,False]
     #toplot = [False,False,False,False,False,False,False,True]
-    toplot = [True]*8
+    #toplot = [True]*8
+    #toplot = [False,True,True,True,False,True,True,True]
+    toplot = [False,False,False,True,False,False,False,False]
     #titles = ["tgrain","heat"]
     #titles = ["tgrain","heat","cool","prad","dg","kabs","kscat","tau","effec_prad"]
 
@@ -136,7 +150,11 @@ for cutoff in cutoffs:
 
         figs = []
         sps = []
-        yranges = [[np.nanmin(d[:,icol+5]),np.nanmax(d[:,icol+5])] for icol in range(len(titles))]
+        cutslice = (d[:,4]<cutoff)
+        #yranges = [[np.nanmin(d[cutslice,icol+5]),np.nanmax(d[cutslice,icol+5])] for icol in range(len(titles))]
+        yranges = [[np.nanmin(d[cutslice,icol+5]),np.percentile(d[cutslice,icol+5],99.5)] for icol in range(len(titles))]
+        print(yranges)
+        #yranges = [[np.nanmin(d[:,icol+5]),np.nanmax(d[:,icol+5])] for icol in range(len(titles))]
         #xrange = [np.nanmin(d[:,4]),np.nanmax(d[:,4])]
         xrange = [np.nanmin(d[:,4]),cutoff]
         x_size = xrange[1]-xrange[0]
@@ -252,8 +270,9 @@ for cutoff in cutoffs:
                 #fig.legend(handles, labels, loc='upper left', ncol=3)
 
                 fig.tight_layout()
-                #fig.savefig("../../figures/table_summary_final_"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
-                fig.savefig("../../figures/table_summary_tau_"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
+                fig.savefig("../../figures/table_summary_coldens_"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
+                #fig.savefig("../../figures/table_summary_tau_"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
+                #fig.savefig("../../figures/table_summary_nodust_"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
 
         # to avoid memory getting full of figures
         P.close('All')
