@@ -4,7 +4,7 @@ import numpy as np
 import scipy.integrate as integrate
 import time
 
-from sys import path
+from sys import path,exit
 path.append("../src/")
 import tab_interp
 
@@ -35,7 +35,7 @@ def get_table_labels(fname):
 
 agn_ndense,agn_dense_vals,agn_ntemp,agn_temp_vals,agn_nintensity,agn_intensity_vals,agn_ncolumn_in,agn_column_in_vals = get_table_labels("shrunk_table_labels_171117coldens.dat")
 
-*x,agn_ntau_in,agn_tau_vals = get_table_labels("shrunk_table_labels_171117tau.dat")
+*x,agn_ntau,agn_tau_vals = get_table_labels("shrunk_table_labels_171117tau.dat")
 
 print("Tables loaded")
 
@@ -58,11 +58,10 @@ tab_dm = h_tau_table[:,1]
 tab_dz = h_tau_table[:,2]
 
 # for test
-#tab_surfs = np.array([0.,0.])
-#tab_dm = np.array([.5,.5])
+#tab_surfs = np.array([0.,0.,0.,0.])
+#tab_dm = np.array([.25,.25,.25,.25])
 
-#attributes_to_mean = ['dHeat','dCool','dg','dustT','arad','opac_abs','opac_scat','column_out'] # for production - i.e. output by optical depth, for raytracing better
-attributes_to_mean = ['dHeat','dCool','dustT','arad','dg','opac_abs','opac_scat','column_in'] # for test - i.e. same as input, output by column density
+attributes_to_mean = ['dHeat','dCool','dustT','arad','dg','opac_abs','opac_scat','column_in'] # for production - i.e. output column density as a function of tau
 
 centre_max_surface_density = integrate.quad(lambda z: kernel(z),-1.,1.)[0]
 
@@ -82,10 +81,15 @@ mass_p = 0.1 # solar masses
 
 #nH_p = 1.e4
 #nH_p = 10.**np.linspace(1.,7.,7)
-nH_p = 10.**np.repeat(agn_dense_vals,agn_ntemp*agn_nintensity*agn_ncolumn_in)
-TK_p = 10.**np.tile(np.repeat(agn_temp_vals,agn_nintensity*agn_ncolumn_in),agn_ndense)
-flux_p = 10.**np.tile(np.repeat(agn_intensity_vals,agn_ncolumn_in),agn_ndense*agn_ntemp)
-surf0_p = np.tile(agn_column_in_vals,agn_nintensity*agn_ndense*agn_ntemp)
+nH_p = 10.**np.repeat(agn_dense_vals,agn_ntemp*agn_nintensity*agn_ntau)
+TK_p = 10.**np.tile(np.repeat(agn_temp_vals,agn_nintensity*agn_ntau),agn_ndense)
+flux_p = 10.**np.tile(np.repeat(agn_intensity_vals,agn_ntau),agn_ndense*agn_ntemp)
+tau0_p = np.tile(agn_tau_vals,agn_nintensity*agn_ndense*agn_ntemp)
+
+tabStructs = interpTauTabVec(nH_p.astype(np.float64),TK_p.astype(np.float64),flux_p.astype(np.float64),tau0_p.astype(np.float64))
+surf0_p = 10.**get_struct_attribute(tabStructs,'column_out')
+
+#surf0_p = np.tile(agn_column_in_vals,agn_nintensity*agn_ndense*agn_ntemp)
 
 surf0_p = np.broadcast_to(surf0_p,(tab_surfs.size,surf0_p.size)).T
 
@@ -113,8 +117,15 @@ attrib_out = []
 for attribute in attributes_to_mean:
 #for attribute in ['dustT']:
     if attribute=='column_in':
-        tau_indices = get_struct_attribute(tabStructs,'ic')
-        vals = agn_column_in_vals[tau_indices]
+#         tau_indices = get_struct_attribute(tabStructs,'ic')
+#         tau_weights = get_struct_attribute(tabStructs,'fc')
+#         index_is_max = (tau_indices==agn_ntau-1)
+#         vals = np.zeros_like(tau_weights)
+#         if np.sum(index_is_max)>0:
+#             vals[index_is_max] = agn_column_in_vals[-1]
+#         if np.sum(~index_is_max)>0:
+#             vals[~index_is_max] = agn_column_in_vals[tau_indices[~index_is_max]]*(1.-tau_weights[~index_is_max]) + agn_column_in_vals[tau_indices[~index_is_max]+1]*tau_weights[~index_is_max]
+        vals = surf0_p
         print(vals.shape)
     else:
         vals = get_struct_attribute(tabStructs,attribute)
