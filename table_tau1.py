@@ -12,7 +12,7 @@ import pylab as P
 if ( not 'd_in' in dir() ):
     print("Loading in table")
     # load in giant file
-    d_in = np.loadtxt("tables_021117.txt",skiprows=1)
+    d_in = np.loadtxt("271117.txt",skiprows=1)
 else:
     print("Using table already in memory - hopefully you want to do this!")
 
@@ -40,6 +40,7 @@ tau_one = np.zeros((ni,nd,nt))
 #tau_target = .5
 
 for tau_target in [.5,1.,2.,5.]:
+#for tau_target in [1.]:
 
     for ii in range(ni):
         for id in range(nd):
@@ -60,11 +61,11 @@ for tau_target in [.5,1.,2.,5.]:
     #cmin = np.nanmin(tau_one)
     #cmax = np.nanmax(tau_one)
 
-    #cmin = np.percentile(tau_one,0)
-    #cmax = np.percentile(tau_one,90)
+    cmin = np.percentile(tau_one,0)
+    cmax = np.percentile(tau_one,90)
     
-    cmin = 23.
-    cmax = 26.
+    #cmin = 21.
+    #cmax = 23.
 
     for isp in range(ni):
         sp = sps[isp]

@@ -6,15 +6,25 @@ import sys
 #taumode=False means use NH column density instead
 taumode = False
 
+#nodustmode = this is dust-free gas for the secondary table
+nodustmode = True
+
 # if re-running in same name-space, don't need to reload the data
 if ( not 'd_in' in dir() ):
     print("Loading in table")
     # load in giant file
-    d_in = np.loadtxt("tables_151117.txt",skiprows=1)
+    #d_in = np.loadtxt("tables_271117.txt",skiprows=1)
+    d_in = np.loadtxt("nodust_301117.txt",skiprows=1)
 else:
     print("Using table already in memory - hopefully you want to do this!")
 
 d = np.copy(d_in)
+
+if nodustmode:
+    # add in blank data
+    s = d.shape[0]
+    d = np.insert(d,5,np.zeros(s),axis=1)
+    d = np.insert(d,9,np.zeros(s),axis=1)
 
 #convert from exp(-tau) to tau
 #d[:,12] = -np.log(d[:,12]) # should already be done now
@@ -35,7 +45,8 @@ nt = temps.size
 ni = intensities.size
 
 tau_suffix = "tau" if taumode else "coldens"
-f = open("shrunk_table_labels_"+time.strftime("%d%m%y")+tau_suffix+".dat",'w')
+dust_suffix = "nodust" if nodustmode else ""
+f = open("shrunk_table_labels_"+time.strftime("%d%m%y")+tau_suffix+dust_suffix+".dat",'w')
 
 for ar in [denses,temps,intensities,column_in]:
     #outd = np.hstack([outd,ar.size,ar])
@@ -92,4 +103,4 @@ for id in range(nd):
             alloutdata=np.hstack([alloutdata,outdata])
 
 alloutdata = np.array(alloutdata)
-np.savetxt("shrunk_table_"+time.strftime("%d%m%y")+tau_suffix+".dat",alloutdata.T)
+np.savetxt("shrunk_table_"+time.strftime("%d%m%y")+tau_suffix+dust_suffix+".dat",alloutdata.T)

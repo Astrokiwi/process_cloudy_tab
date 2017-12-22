@@ -13,8 +13,8 @@ insert_dusty = True
 if ( not 'd_in' in dir() ):
     print("Loading in table")
     # load in giant file
-    #d_in = np.loadtxt("tables_021117.txt",skiprows=1)
-    d_in = np.loadtxt("nodust_021117.txt",skiprows=1)
+    #d_in = np.loadtxt("271117.txt",skiprows=1)
+    d_in = np.loadtxt("nodust_301117.txt",skiprows=1)
 else:
     print("Using table already in memory - hopefully you want to do this!")
 
@@ -29,7 +29,7 @@ nd = denses.size
 nt = temps.size
 ni = intensities.size
 
-nc = d.shape[0]/nd/nt/ni
+nc = d.shape[0]//nd//nt//ni
 d_offset = nt*ni*nc*np.arange(nd)
 i_offset = nt*nc*(np.arange(intensities.size,0,-1)-1) # intensities *decrease* through the array
 t_offset = nc*np.arange(temps.size)

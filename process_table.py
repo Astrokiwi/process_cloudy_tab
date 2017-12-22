@@ -8,7 +8,7 @@ import sys
 #d = np.loadtxt("dg.txt",skiprows=1)
 #d = np.loadtxt("opac.txt",skiprows=1)
 #d = np.loadtxt("cooling_final.txt",skiprows=1)
-d = np.loadtxt("tables_021117.txt",skiprows=1)
+d = np.loadtxt("151117",skiprows=1)
 
 # intensities = np.linspace(3.748188,7.748188,num=9)
 # # temps = np.linspace(1.,8.,29)
@@ -76,21 +76,6 @@ for id in range(nd):
             if ( np.sum(tab_slices[id,it,ii])>0 ):
                 for i,icol in enumerate(outp_cols_interp):
                     alloutp[i][id,it,ii] = np.interp(surfs,d[tab_slices[id,it,ii],4],d[tab_slices[id,it,ii],icol])
-#                 heats[id,it,ii] = np.interp(surfs,d[tab_slices[id,it,ii],4],d[tab_slices[id,it,ii],5])
-#                 cools[id,it,ii] = np.interp(surfs,d[tab_slices[id,it,ii],4],d[tab_slices[id,it,ii],6])
-#                 dusts[id,it,ii] = np.interp(surfs,d[tab_slices[id,it,ii],4],d[tab_slices[id,it,ii],7])
-#                 arads[id,it,ii] = np.interp(surfs,d[tab_slices[id,it,ii],4],d[tab_slices[id,it,ii],8])
-#                 dg[id,it,ii] = np.interp(surfs,d[tab_slices[id,it,ii],4],d[tab_slices[id,it,ii],9])
-#                 # temporary hack for negative cooling
-#                 if ( np.any(cools[id,it,ii]<0.) ):
-#                     belowzero = (cools[id,it,ii]<0.)
-#                     heats[id,it,ii][belowzero]-=cools[id,it,ii][belowzero]
-#                     cools[id,it,ii][belowzero] = 1.e-50 # basically zero
-#                 if ( np.any(heats[id,it,ii]<0.) ):
-#                     belowzero = (heats[id,it,ii]<0.)
-#                     cools[id,it,ii][belowzero]-=heats[id,it,ii][belowzero]
-#                     heats[id,it,ii][belowzero] = 1.e-50 # basically zero
-
 
 alloutdata = np.empty((noutp,0))
 

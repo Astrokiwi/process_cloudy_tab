@@ -74,3 +74,4 @@ sample_centres = (surf_samples[:-1]+surf_samples[1:])/2.
 #np.savetxt("data/h_depth_table.dat",np.array([surf_samples[:-1],mass_per_slice,zcent_at_sample[:-1]]).T)
 np.savetxt("../data/h_depth_table.dat",np.array([sample_centres,mass_per_slice,zcent_at_sample]).T)
 
+

@@ -6,14 +6,16 @@ mpl.use('Agg')
 import pylab as P
 #from joblib import Parallel, delayed
 
-insert_dusty = False
+insert_dusty = True
 
 # if re-running in same name-space, don't need to reload the data
 if ( not 'd_in' in dir() ):
     print("Loading in table")
     # load in giant file
-    d_in = np.loadtxt("tables_021117.txt",skiprows=1)
-    #d_in = np.loadtxt("nodust_021117.txt",skiprows=1)
+    #d_old = np.loadtxt("tables_151117.txt",skiprows=1)
+    #d_in = np.loadtxt("tables_271117.txt",skiprows=1)
+
+    d_in = np.loadtxt("nodust_301117.txt",skiprows=1)
 else:
     print("Using table already in memory - hopefully you want to do this!")
 
@@ -36,21 +38,24 @@ print("Working on table")
 #cutoffs = [23,24,25,26]
 #cutoffs = [24]
 
-#cutoffs = [.5]
-cutoffs = [4.e22]
+cutoffs = [1.]
+#cutoffs = [5.e21]
 
-for cutoff in cutoffs:
 
-    d = np.copy(d_in) # so we don't repeat the logging, but we can change the logging without having to read in again
+datas = []
+
+#for data_id, this_data in enumerate([d_in,d_old]):
+for data_id, this_data in enumerate([d_in]):
+    d = np.copy(this_data) # so we don't repeat the logging, but we can change the logging without having to read in again
 
     if insert_dusty:
         s = d.shape[0]
-        d = np.insert(d,5,np.zeros(s),axis=1)
-        d = np.insert(d,9,np.zeros(s),axis=1)
+        d = np.insert(d,5,np.zeros(s)+1.,axis=1)
+        d = np.insert(d,9,np.zeros(s)+1.,axis=1)
 
     # use tau for x axis
     #d[:,4] = -np.log(d[:,12])
-    #d[:,4] = d[:,12] # should already be logged 
+    d[:,4] = d[:,12] # should already be logged 
 
 
 
@@ -69,6 +74,10 @@ for cutoff in cutoffs:
     # x = d[:,12] * (d[:,10]+d[:,11]) * 10.**d[:,2] # approximate rad pressure modulo units = exp(-tau) * (sum of opacities) * input intensity 
     # d = np.vstack((d.T,x)).T # add to array - 14th column
     # d[:,13] = np.log10(d[:,13]) # and log this
+    
+    # create new data (optional) - ratio between scattering and absorption
+    x = d[:,10]/d[:,11]
+    d = np.vstack((d.T,x)).T # add to array - 14th column
 
     #d[:,12] = -np.log(d[:,12]) # convert from exp(-tau) to tau # should already be done
     #d[:,12] = -np.log(np.clip(d[:,12],None,1.+1.e-10)) # convert from exp(-tau) to tau
@@ -76,7 +85,7 @@ for cutoff in cutoffs:
 
     #d[:,4:9] = np.log10(d[:,4:9]) # log most dependent variables, plus column density (other independent variables are already logged) (don't log dust fraction)
     d[:,5:9] = np.log10(d[:,5:9]) # log most dependent variables, BUT NOT column density (other independent variables are already logged) (don't log dust fraction)
-    #d[:,10:12] = np.log10(d[:,10:12]) # log opacities too
+    d[:,10:12] = np.log10(d[:,10:12]) # log opacities too
     #d[:,12] = np.log10(d[:,12]) # log tau too
 
 
@@ -92,7 +101,7 @@ for cutoff in cutoffs:
     nt = temps.size
     ni = intensities.size
 
-    nc = d.shape[0]/nd/nt/ni
+    nc = d.shape[0]//nd//nt//ni
     
 #     tau0 = d[:nc,12].copy()
 #     for i in range(nt*ni*nd):
@@ -108,20 +117,67 @@ for cutoff in cutoffs:
     data_axes["i"] = Data_Axis(ni,intensities,2,"I")
 
     # output all different quantities
-    titles = ["tgrain","heat","cool","prad","dg","kabs","kscat","tau"]
+    #titles = ["tgrain","heat","cool","prad","dg","kabs","kscat","tau"]
     #toplot = [False,False,False,True,False,False,False,False]
     #toplot = [False,False,False,False,False,False,False,True]
     #toplot = [True]*8
-    #toplot = [False,True,True,True,False,True,True,True]
-    toplot = [False,False,False,True,False,False,False,False]
+    #toplot = [True,True,True,True,False,True,True,True] # nodust
+    #toplot = [False,False,False,True,False,False,False,False]
     #titles = ["tgrain","heat"]
     #titles = ["tgrain","heat","cool","prad","dg","kabs","kscat","tau","effec_prad"]
-
+    
+    titles = ["tgrain","heat","cool","prad","dg","kabs","kscat","tau","kabsscat"]
+    #toplot = [False,False,False,False,False,False,False,False,True]
+    #toplot = [True]*9
+    toplot = [True,True,True,True,False,True,True,True,True] # nodust
+    
     #colrowline_var0 = np.array(("t","d","i"))
     #colrowline_var_list = [colrowline_var0,np.roll(colrowline_var0,1),np.roll(np.roll(colrowline_var0,1),1)]
     #colrowline_var_list = [("t","d","i")]
-    colrowline_var_list = [("t","i","d")]
+    colrowline_var_list = [("i","t","d")]
+#     colrowline_var_list = [("d","i","t")]
+    datas.append(d)
 
+linestyles = ['-','--']
+
+def doplot(d,sps,denses,intensities,temps,id,ni,it):
+    print(id,it)
+    for ii in range(ni):
+        if data_axes[row_var].dti(id,it,ii)==0 and data_axes[column_var].dti(id,it,ii)==0:
+            setuplegend = True
+            leg_ax = data_axes[line_var]
+            legendlabels = list(map(leg_ax.label_str,range(leg_ax.n)))
+            #print("making legend",legendlabels)
+        else:
+            setuplegend = False
+        #x_left = it*(x_size+x_offset)
+        x_left = data_axes[column_var].dti(id,it,ii)*(x_size+x_offset)
+    #for ii in [5]: # just one intensity
+#         tab_slice = (d[:,1]==denses[id]) & (d[:,2]==intensities[ii]) & (d[:,3]==temps[it])
+        index0 = d_offset[id]+i_offset[ii]+t_offset[it]
+        #index1 = index0+nc
+        index1 = index0+np.searchsorted(d[index0:index0+nc,4],cutoff) # for plotting tau cutoff
+        d_slice = d[index0:index1]
+        #d_slice = d_slice[::10,:] # for speed
+
+#         for icol,fig in enumerate(figs):
+        for icol,sp in enumerate(sps):
+            if ( toplot[icol] ):
+                #if ( icol==7 ):
+                #    d_slice[:,5+icol]/=tau0
+            
+                #y_bottom = id*(y_sizes[icol]+y_offsets[icol])
+                y_bottom = data_axes[row_var].dti(id,it,ii)*(y_sizes[icol]+y_offsets[icol])
+                color_index = data_axes[line_var].dti(id,it,ii)%len(color_cycle)
+                #color_string = 'C%1d'%color_index
+                if setuplegend: leglabel = legendlabels[leg_ax.dti(id,it,ii)]
+                else: leglabel = None
+                sp.plot(d_slice[:,4]-xrange[0]+x_left,d_slice[:,5+icol]-yranges[icol][0]+y_bottom,c=color_cycle[color_index],label=leglabel,linestyle=linestyles[idata])
+
+
+d = datas[0]
+
+for cutoff in cutoffs:
     for colrowline_var in colrowline_var_list:
 
     ## vary across columns of plots
@@ -138,32 +194,11 @@ for cutoff in cutoffs:
         # vary within each plot
         line_var = colrowline_var[2]
 
-        print("Calculating order of arrays")
-        nc = d.shape[0]/nd/nt/ni
-        d_offset = nt*ni*nc*np.arange(nd)
-        i_offset = nt*nc*(np.arange(intensities.size,0,-1)-1) # intensities *decrease* through the array
-        t_offset = nc*np.arange(temps.size)
-
+        figs = []
+        sps = []
 
         nx = data_axes[column_var].n
         ny = data_axes[row_var].n
-
-        figs = []
-        sps = []
-        cutslice = (d[:,4]<cutoff)
-        #yranges = [[np.nanmin(d[cutslice,icol+5]),np.nanmax(d[cutslice,icol+5])] for icol in range(len(titles))]
-        yranges = [[np.nanmin(d[cutslice,icol+5]),np.percentile(d[cutslice,icol+5],99.5)] for icol in range(len(titles))]
-        print(yranges)
-        #yranges = [[np.nanmin(d[:,icol+5]),np.nanmax(d[:,icol+5])] for icol in range(len(titles))]
-        #xrange = [np.nanmin(d[:,4]),np.nanmax(d[:,4])]
-        xrange = [np.nanmin(d[:,4]),cutoff]
-        x_size = xrange[1]-xrange[0]
-        x_offset = x_size*.1
-        y_sizes = [yr[1]-yr[0] for yr in yranges]
-        y_offsets = [ys*.1 for ys in y_sizes]
-
-        print(nx,"x",ny,"plots",colrowline_var)
-
 
 
         print("Setting up subplots")
@@ -177,46 +212,44 @@ for cutoff in cutoffs:
 
         color_cycle = [x[u'color'] for x in mpl.rcParams['axes.prop_cycle']]
 
-        def doplot(d,sps,denses,intensities,temps,id,ni,it):
-            print(id,it)
-            for ii in range(ni):
-                if data_axes[row_var].dti(id,it,ii)==0 and data_axes[column_var].dti(id,it,ii)==0:
-                    setuplegend = True
-                    leg_ax = data_axes[line_var]
-                    legendlabels = map(leg_ax.label_str,range(leg_ax.n))
-                    #print("making legend",legendlabels)
-                else:
-                    setuplegend = False
-                #x_left = it*(x_size+x_offset)
-                x_left = data_axes[column_var].dti(id,it,ii)*(x_size+x_offset)
-            #for ii in [5]: # just one intensity
-        #         tab_slice = (d[:,1]==denses[id]) & (d[:,2]==intensities[ii]) & (d[:,3]==temps[it])
-                index0 = d_offset[id]+i_offset[ii]+t_offset[it]
-                #index1 = index0+nc
-                index1 = index0+np.searchsorted(d[index0:index0+nc,4],cutoff) # for plotting tau cutoff
-                d_slice = d[index0:index1]
-                #d_slice = d_slice[::10,:] # for speed
-        
-        #         for icol,fig in enumerate(figs):
-                for icol,sp in enumerate(sps):
-                    if ( toplot[icol] ):
-                        #if ( icol==7 ):
-                        #    d_slice[:,5+icol]/=tau0
-                    
-                        #y_bottom = id*(y_sizes[icol]+y_offsets[icol])
-                        y_bottom = data_axes[row_var].dti(id,it,ii)*(y_sizes[icol]+y_offsets[icol])
-                        color_index = data_axes[line_var].dti(id,it,ii)%len(color_cycle)
-                        #color_string = 'C%1d'%color_index
-                        if setuplegend: leglabel = legendlabels[leg_ax.dti(id,it,ii)]
-                        else: leglabel = None
-                        sp.plot(d_slice[:,4]-xrange[0]+x_left,d_slice[:,5+icol]-yranges[icol][0]+y_bottom,c=color_cycle[color_index],label=leglabel)
 
-        print("Plotting")
 
-        #plot all the subplots
-        for id in range(nd):
-            for it in range(nt):
-                doplot(d,sps,denses,intensities,temps,id,ni,it)
+        for idata in range(len(datas)):
+            d = datas[idata]
+            print("Calculating order of arrays")
+            nc = d.shape[0]//nd//nt//ni
+            d_offset = nt*ni*nc*np.arange(nd)
+            i_offset = nt*nc*(np.arange(intensities.size,0,-1)-1) # intensities *decrease* through the array
+            t_offset = nc*np.arange(temps.size)
+
+
+
+            cutslice = (d[:,4]<cutoff)
+            #yranges = [[np.nanmin(d[cutslice,icol+5]),np.nanmax(d[cutslice,icol+5])] for icol in range(len(titles))]
+            #yranges = [[np.nanmin(d[:,icol+5]),np.nanmax(d[:,icol+5])] for icol in range(len(titles))]
+            #xrange = [np.nanmin(d[:,4]),np.nanmax(d[:,4])]
+            if idata==0:# don't change xranges for second time in loop
+                xrange = [np.nanmin(d[:,4]),cutoff] 
+                x_size = xrange[1]-xrange[0]
+                x_offset = x_size*.1
+
+                yranges = [[np.nanmin(d[cutslice,icol+5]),np.percentile(d[cutslice,icol+5],99.5)] for icol in range(len(titles))]
+                y_sizes = [yr[1]-yr[0] for yr in yranges]
+                y_offsets = [ys*.1 for ys in y_sizes]
+            print(yranges)
+
+            print(nx,"x",ny,"plots",colrowline_var)
+
+            print("Plotting")
+
+            #plot all the subplots
+            for id in range(nd):
+                for it in range(nt):
+                    doplot(d,sps,denses,intensities,temps,id,ni,it)
+
+
+
+
 
         for ix in range(data_axes[column_var].n):
             for iy in range(data_axes[row_var].n):
@@ -237,7 +270,7 @@ for cutoff in cutoffs:
         #xtickvalues = d[np.linspace(0,nc-1,nxticks,dtype=int),4]
         xtickvalues = np.linspace(xrange[0],xrange[1],nxticks)
         #xticklabels = np.tile(map(lambda x : "%.1f" % x,xtickvalues),nt)
-        xticklabels = np.tile(map(lambda x : "%.2e" % x,xtickvalues),nx)
+        xticklabels = np.tile(list(map(lambda x : "%.2e" % x,xtickvalues)),nx)
 
         print("Rendering and dumping")
         # format & dump everything
@@ -258,7 +291,7 @@ for cutoff in cutoffs:
                 yticks_all = np.tile(yticks_each,ny)+np.repeat(yticks_bottom,nyticks)
 
                 ytickvalues = np.linspace(yranges[ifig][0],yranges[ifig][1],nyticks)
-                yticklabels = np.tile(map(lambda x : "%.2e"%x,ytickvalues),ny)
+                yticklabels = np.tile(list(map(lambda x : "%.2e"%x,ytickvalues)),ny)
                 #yticklabels = np.tile(map(lambda x : "{}".format(x),ytickvalues),nd)
     
                 sp.set_yticks(yticks_all)
@@ -270,9 +303,9 @@ for cutoff in cutoffs:
                 #fig.legend(handles, labels, loc='upper left', ncol=3)
 
                 fig.tight_layout()
-                fig.savefig("../../figures/table_summary_coldens_"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
+                #fig.savefig("../../figures/table_summary_coldens_OLDNEW"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
                 #fig.savefig("../../figures/table_summary_tau_"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
-                #fig.savefig("../../figures/table_summary_nodust_"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
+                fig.savefig("../../figures/table_summary_nodust_tau_"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
 
         # to avoid memory getting full of figures
         P.close('All')
