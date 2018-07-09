@@ -9,20 +9,28 @@ path.append("../src/")
 import tab_interp
 
 #nodustmode = this is dust-free gas for the secondary table
-nodustmode = True
+nodustmode = False
+
+#highdensemode = this is the third table, high density but only cold gas
+highdensemode = True
 
 dust_suffix = "nodust" if nodustmode else ""
+if nodustmode and highdensemode:
+    raise Exception("Can't have both nodustmode and highdensemode!")
+dense_suffix = "dense" if highdensemode else ""
+ 
+suffixes = dust_suffix+dense_suffix
 
 #table_date = "17117"
 #table_date = "291117"
 table_date = "011217"
 
 print("Loading table (coldens)")
-chTab = tab_interp.CoolHeatTab(("shrunk_table_labels_"+table_date+"coldens"+dust_suffix+".dat"),("shrunk_table_"+table_date+"coldens"+dust_suffix+".dat"))
+chTab = tab_interp.CoolHeatTab(("shrunk_table_labels_"+table_date+"coldens"+suffixes+".dat"),("shrunk_table_"+table_date+"coldens"+suffixes+".dat"))
 interpTabVec = np.vectorize(chTab.interpTab)
 
 print("Loading table (tau)")
-tauChTab = tab_interp.CoolHeatTab(("shrunk_table_labels_"+table_date+"tau"+dust_suffix+".dat"),("shrunk_table_"+table_date+"tau"+dust_suffix+".dat"))
+tauChTab = tab_interp.CoolHeatTab(("shrunk_table_labels_"+table_date+"tau"+suffixes+".dat"),("shrunk_table_"+table_date+"tau"+suffixes+".dat"))
 interpTauTabVec = np.vectorize(tauChTab.interpTab)
 
 def get_table_labels(fname):
@@ -42,7 +50,7 @@ def get_table_labels(fname):
     
     return agn_ndense,agn_dense_vals,agn_ntemp,agn_temp_vals,agn_nintensity,agn_intensity_vals,agn_ncolumn_in,agn_column_in_vals
 
-agn_ndense,agn_dense_vals,agn_ntemp,agn_temp_vals,agn_nintensity,agn_intensity_vals,agn_ncolumn_in,agn_column_in_vals = get_table_labels("shrunk_table_labels_"+table_date+"coldens"+dust_suffix+".dat")
+agn_ndense,agn_dense_vals,agn_ntemp,agn_temp_vals,agn_nintensity,agn_intensity_vals,agn_ncolumn_in,agn_column_in_vals = get_table_labels("shrunk_table_labels_"+table_date+"coldens"+suffixes+".dat")
 
 *x,agn_ntau,agn_tau_vals = get_table_labels("shrunk_table_labels_"+table_date+"tau"+dust_suffix+".dat")
 
@@ -79,7 +87,8 @@ centre_max_surface_density = integrate.quad(lambda z: kernel(z),-1.,1.)[0]
 
 #for mass_p in np.arange(1,11)*0.01:
 #for mass_p in [0.01]:
-for mass_p in [0.04,0.02,0.08,0.1]:
+# for mass_p in [0.04,0.02,0.08,0.1]:
+for mass_p in [0.01]:
     print("mass=",mass_p)
 
     # h=nH**(-1./3.)/h_dense_factor

@@ -4,17 +4,21 @@ import sys
 
 #taumode=True means use tau as the independent variable
 #taumode=False means use NH column density instead
-taumode = False
+taumode = True
 
 #nodustmode = this is dust-free gas for the secondary table
-nodustmode = True
+nodustmode = False
+
+#highdensemode = this is the third table, high density but only cold gas
+highdensemode = True
 
 # if re-running in same name-space, don't need to reload the data
 if ( not 'd_in' in dir() ):
     print("Loading in table")
     # load in giant file
     #d_in = np.loadtxt("tables_271117.txt",skiprows=1)
-    d_in = np.loadtxt("nodust_301117.txt",skiprows=1)
+#     d_in = np.loadtxt("nodust_301117.txt",skiprows=1)
+    d_in = np.loadtxt("highden_260118.txt",skiprows=1)
 else:
     print("Using table already in memory - hopefully you want to do this!")
 
@@ -27,7 +31,7 @@ if nodustmode:
     d = np.insert(d,9,np.zeros(s),axis=1)
 
 #convert from exp(-tau) to tau
-#d[:,12] = -np.log(d[:,12]) # should already be done now
+#d[:,12] = -np.log(d[:,12]) # should already be done now # no, it's not logged, but that's fine.
 
 denses = np.unique(d[:,1])
 intensities = np.unique(d[:,2])
@@ -46,7 +50,12 @@ ni = intensities.size
 
 tau_suffix = "tau" if taumode else "coldens"
 dust_suffix = "nodust" if nodustmode else ""
-f = open("shrunk_table_labels_"+time.strftime("%d%m%y")+tau_suffix+dust_suffix+".dat",'w')
+if nodustmode and highdensemode:
+    raise Exception("Can't have both nodustmode and highdensemode!")
+dense_suffix = "dense" if highdensemode else ""
+ 
+suffixes = tau_suffix+dust_suffix+dense_suffix
+f = open("shrunk_table_labels_"+time.strftime("%d%m%y")+suffixes+".dat",'w')
 
 for ar in [denses,temps,intensities,column_in]:
     #outd = np.hstack([outd,ar.size,ar])
@@ -103,4 +112,4 @@ for id in range(nd):
             alloutdata=np.hstack([alloutdata,outdata])
 
 alloutdata = np.array(alloutdata)
-np.savetxt("shrunk_table_"+time.strftime("%d%m%y")+tau_suffix+dust_suffix+".dat",alloutdata.T)
+np.savetxt("shrunk_table_"+time.strftime("%d%m%y")+suffixes+".dat",alloutdata.T)
