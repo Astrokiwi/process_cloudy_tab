@@ -19,6 +19,8 @@ if ( not 'd_in' in dir() ):
     #d_in = np.loadtxt("tables_271117.txt",skiprows=1)
 #     d_in = np.loadtxt("nodust_301117.txt",skiprows=1)
     d_in = np.loadtxt("highden_260118.txt",skiprows=1)
+#     d_in = np.loadtxt("tables_271117.txt",skiprows=1)
+#     d_in = np.loadtxt("nodust_301117.txt",skiprows=1)
 else:
     print("Using table already in memory - hopefully you want to do this!")
 
