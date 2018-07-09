@@ -6,16 +6,18 @@ mpl.use('Agg')
 import pylab as P
 #from joblib import Parallel, delayed
 
-insert_dusty = True
+insert_dusty = False
 
 # if re-running in same name-space, don't need to reload the data
 if ( not 'd_in' in dir() ):
     print("Loading in table")
     # load in giant file
-    #d_old = np.loadtxt("tables_151117.txt",skiprows=1)
-    #d_in = np.loadtxt("tables_271117.txt",skiprows=1)
+#     d_old = np.loadtxt("tables_151117.txt",skiprows=1)
+#     d_in = np.loadtxt("tables_271117.txt",skiprows=1)
 
-    d_in = np.loadtxt("nodust_301117.txt",skiprows=1)
+#     d_in = np.loadtxt("nodust_301117.txt",skiprows=1)
+#     d_in = np.loadtxt("tables_271117.txt",skiprows=1)
+    d_in = np.loadtxt("highden_260118.txt",skiprows=1)
 else:
     print("Using table already in memory - hopefully you want to do this!")
 
@@ -38,13 +40,13 @@ print("Working on table")
 #cutoffs = [23,24,25,26]
 #cutoffs = [24]
 
-cutoffs = [1.]
+cutoffs = [5.]
 #cutoffs = [5.e21]
 
 
 datas = []
 
-#for data_id, this_data in enumerate([d_in,d_old]):
+# for data_id, this_data in enumerate([d_in,d_old]):
 for data_id, this_data in enumerate([d_in]):
     d = np.copy(this_data) # so we don't repeat the logging, but we can change the logging without having to read in again
 
@@ -55,7 +57,7 @@ for data_id, this_data in enumerate([d_in]):
 
     # use tau for x axis
     #d[:,4] = -np.log(d[:,12])
-    d[:,4] = d[:,12] # should already be logged 
+    d[:,4] = d[:,12] # not logged! doesn't matter though 
 
 
 
@@ -127,15 +129,16 @@ for data_id, this_data in enumerate([d_in]):
     #titles = ["tgrain","heat","cool","prad","dg","kabs","kscat","tau","effec_prad"]
     
     titles = ["tgrain","heat","cool","prad","dg","kabs","kscat","tau","kabsscat"]
-    #toplot = [False,False,False,False,False,False,False,False,True]
-    #toplot = [True]*9
-    toplot = [True,True,True,True,False,True,True,True,True] # nodust
+#     toplot = [True,False,False,True,True,False,False,False,False]
+    toplot = [True]*9
+#     toplot = [True,True,True,True,False,True,True,True,True] # nodust
     
     #colrowline_var0 = np.array(("t","d","i"))
     #colrowline_var_list = [colrowline_var0,np.roll(colrowline_var0,1),np.roll(np.roll(colrowline_var0,1),1)]
     #colrowline_var_list = [("t","d","i")]
-    colrowline_var_list = [("i","t","d")]
-#     colrowline_var_list = [("d","i","t")]
+#     colrowline_var_list = [("i","t","d")]
+#     colrowline_var_list = [("t","d","i")]
+    colrowline_var_list = [("d","i","t")]
     datas.append(d)
 
 linestyles = ['-','--']
@@ -177,6 +180,8 @@ def doplot(d,sps,denses,intensities,temps,id,ni,it):
 
 d = datas[0]
 
+figscale = 2.
+
 for cutoff in cutoffs:
     for colrowline_var in colrowline_var_list:
 
@@ -205,7 +210,7 @@ for cutoff in cutoffs:
         # set up figures
         for ifig, title in enumerate(titles):
             print(title)
-            fig,sp = P.subplots(1,1,figsize=(2.4*nx,1.5*ny),dpi=100)
+            fig,sp = P.subplots(1,1,figsize=(2.4*nx*figscale,1.5*ny*figscale),dpi=100)
             fig.suptitle(title)
             figs.append(fig)
             sps.append(sp)
@@ -303,9 +308,10 @@ for cutoff in cutoffs:
                 #fig.legend(handles, labels, loc='upper left', ncol=3)
 
                 fig.tight_layout()
-                #fig.savefig("../../figures/table_summary_coldens_OLDNEW"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
+#                 fig.savefig("../../figures/table_summary_coldens_nodust"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
+                fig.savefig("../../figures/table_summary_coldens_highdens"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
                 #fig.savefig("../../figures/table_summary_tau_"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
-                fig.savefig("../../figures/table_summary_nodust_tau_"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
+#                 fig.savefig("../../figures/table_summary_nodust_tau_"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
 
         # to avoid memory getting full of figures
         P.close('All')
