@@ -7,14 +7,14 @@ import sys
 taumode = False
 
 #nodustmode = this is dust-free gas for the secondary table
-nodustmode = True
+nodustmode = False
 
 # if re-running in same name-space, don't need to reload the data
 if ( not 'd_in' in dir() ):
     print("Loading in table")
     # load in giant file
-    #d_in = np.loadtxt("tables_271117.txt",skiprows=1)
-    d_in = np.loadtxt("nodust_301117.txt",skiprows=1)
+    d_in = np.loadtxt("tables_271117.txt",skiprows=1)
+#     d_in = np.loadtxt("nodust_301117.txt",skiprows=1)
 else:
     print("Using table already in memory - hopefully you want to do this!")
 
