@@ -73,7 +73,14 @@ for dust_suffix in ["","nodust"]:
             #     print(np.array(zip(axis_points['temp'],integ-integ[2])))
             #     print(tableData['inverseHeatCool'])
 
+
     tableData=tableData.drop('inverseHeatCool',1)
+    print(np.min(tableData['integratedInverseHeatCool']),np.max(tableData['integratedInverseHeatCool']))
+    # add offset so that integrated heatcool is never below zero
+    minheatcool = np.min(tableData['integratedInverseHeatCool'])
+    if minheatcool<0.:
+        tableData['integratedInverseHeatCool']-=minheatcool
+    
 
     tableData.to_csv("integ_table_{}_m0.01_hsmooth_tau{}.dat".format(table_date,dust_suffix),sep=' ')
 
