@@ -76,10 +76,12 @@ for dust_suffix in ["","nodust"]:
 
     tableData=tableData.drop('inverseHeatCool',1)
     print(np.min(tableData['integratedInverseHeatCool']),np.max(tableData['integratedInverseHeatCool']))
+    
+    # xxxx don't do this, it makes the fit horrible later
     # add offset so that integrated heatcool is never below zero
-    minheatcool = np.min(tableData['integratedInverseHeatCool'])
-    if minheatcool<0.:
-        tableData['integratedInverseHeatCool']-=minheatcool
+#     minheatcool = np.min(tableData['integratedInverseHeatCool'])
+#     if minheatcool<0.:
+#         tableData['integratedInverseHeatCool']-=minheatcool
     
 
     tableData.to_csv("integ_table_{}_m0.01_hsmooth_tau{}.dat".format(table_date,dust_suffix),sep=' ')
