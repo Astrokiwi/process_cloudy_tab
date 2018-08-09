@@ -16,8 +16,8 @@ if ( not 'd_in' in dir() ):
 #     d_in = np.loadtxt("tables_271117.txt",skiprows=1)
 
 #     d_in = np.loadtxt("nodust_301117.txt",skiprows=1)
-#     d_in = np.loadtxt("tables_271117.txt",skiprows=1)
-    d_in = np.loadtxt("highden_260118.txt",skiprows=1)
+    d_in = np.loadtxt("tables_271117.txt",skiprows=1)
+#     d_in = np.loadtxt("highden_260118.txt",skiprows=1)
 else:
     print("Using table already in memory - hopefully you want to do this!")
 
@@ -40,7 +40,7 @@ print("Working on table")
 #cutoffs = [23,24,25,26]
 #cutoffs = [24]
 
-cutoffs = [5.]
+cutoffs = [1.]
 #cutoffs = [5.e21]
 
 
@@ -129,8 +129,8 @@ for data_id, this_data in enumerate([d_in]):
     #titles = ["tgrain","heat","cool","prad","dg","kabs","kscat","tau","effec_prad"]
     
     titles = ["tgrain","heat","cool","prad","dg","kabs","kscat","tau","kabsscat"]
-#     toplot = [True,False,False,True,True,False,False,False,False]
-    toplot = [True]*9
+    toplot = [True,False,False,False,True,False,False,False,False]
+#     toplot = [True]*9
 #     toplot = [True,True,True,True,False,True,True,True,True] # nodust
     
     #colrowline_var0 = np.array(("t","d","i"))
@@ -138,7 +138,7 @@ for data_id, this_data in enumerate([d_in]):
     #colrowline_var_list = [("t","d","i")]
 #     colrowline_var_list = [("i","t","d")]
 #     colrowline_var_list = [("t","d","i")]
-    colrowline_var_list = [("d","i","t")]
+    colrowline_var_list = [("d","t","i")]
     datas.append(d)
 
 linestyles = ['-','--']

@@ -96,7 +96,7 @@ for nodustmode,highdensemode,table_date in [(False,True,"090718")]:
     #mass_p = 0.01 # solar masses
 
     #for mass_p in np.arange(1,11)*0.01:
-    for mass_p in [0.01]:
+    for mass_p in [0.001,0.0001]:
     #for mass_p in [0.02,0.04,0.06,0.08,0.1]:
         print("mass=",mass_p)
 
