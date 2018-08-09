@@ -20,9 +20,7 @@ import tab_interp
 # nodustmode = False
 # table_date = "291117"
 
-# for nodustmode,highdensemode,table_date in [(True,False,"240518"),(False,False,"240518")]:
-for nodustmode,highdensemode,table_date in [(False,True,"090718")]:
-
+def generate_h_weighted_table(nodustmode,highdensemode,table_date,mass=0.0001):
     dust_suffix = "nodust" if nodustmode else ""
     if nodustmode and highdensemode:
         raise Exception("Can't have both nodustmode and highdensemode!")
@@ -94,9 +92,13 @@ for nodustmode,highdensemode,table_date in [(False,True,"090718")]:
 
 
     #mass_p = 0.01 # solar masses
+    if isinstance(mass,list):
+        masses = mass
+    else:
+        masses = [mass]
 
     #for mass_p in np.arange(1,11)*0.01:
-    for mass_p in [0.001,0.0001]:
+    for mass_p in masses:
     #for mass_p in [0.02,0.04,0.06,0.08,0.1]:
         print("mass=",mass_p)
 
@@ -169,3 +171,9 @@ for nodustmode,highdensemode,table_date in [(False,True,"090718")]:
         attrib_out = np.array(attrib_out)
 
         np.savetxt("shrunk_table_"+time.strftime("%d%m%y")+"_m{}_hsmooth_tau".format(mass_p)+suffixes+".dat",attrib_out.T)
+
+
+if __name__ == '__main__':
+    # for nodustmode,highdensemode,table_date in [(True,False,"240518"),(False,False,"240518")]:
+    for nodustmode,highdensemode,table_date in [(False,True,"090718")]:
+        generate_h_weighted_table(nodustmode,highdensemode,table_date)
