@@ -3,7 +3,7 @@ import h_weighted_table
 import time
 
 for nodustmode,highdensemode,filename in [ (False,True,"highden_260118.txt"),
-                                           (False,False,"tables_271117.txt"),
+                                           (False,False,"tables_070818.txt"),
                                            (True,False,"nodust_301117.txt")
                                             ]:
     for taumode in [True,False]:
