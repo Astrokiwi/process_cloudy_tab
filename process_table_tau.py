@@ -61,6 +61,7 @@ def process_table_tau(taumode,nodustmode,highdensemode,tableFile,taumax=5.):
     dense_suffix = "dense" if highdensemode else ""
  
     suffixes = tau_suffix+dust_suffix+dense_suffix
+    print("Saving labels")
     f = open("shrunk_table_labels_"+time.strftime("%d%m%y")+suffixes+".dat",'w')
 
     for ar in [denses,temps,intensities,column_in]:
@@ -92,7 +93,7 @@ def process_table_tau(taumode,nodustmode,highdensemode,tableFile,taumax=5.):
 
     for id in range(nd):
         for it in range(nt):
-            print(id,it)
+#             print(id,it)
             for ii in range(ni):
                 index0 = d_offset[id]+i_offset[ii]+t_offset[it]
                 index1 = index0+nc
@@ -106,7 +107,7 @@ def process_table_tau(taumode,nodustmode,highdensemode,tableFile,taumax=5.):
 
     for id in range(nd):
         for it in range(nt):
-            print(id,it)
+#             print(id,it)
             for ii in range(ni):
                 outdata = []
                 for iout,outp in enumerate(alloutp):
@@ -118,6 +119,7 @@ def process_table_tau(taumode,nodustmode,highdensemode,tableFile,taumax=5.):
                 alloutdata=np.hstack([alloutdata,outdata])
 
     alloutdata = np.array(alloutdata)
+    print("Saving table")
     np.savetxt("shrunk_table_"+time.strftime("%d%m%y")+suffixes+".dat",alloutdata.T)
 
 if __name__ == '__main__':
