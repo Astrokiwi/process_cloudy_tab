@@ -88,7 +88,7 @@ def generate_h_weighted_table(nodustmode,highdensemode,table_date,mass=0.0001):
     #tab_surfs = np.array([0.,0.,0.,0.])
     #tab_dm = np.array([.25,.25,.25,.25])
 
-    attributes_to_mean = ['dHeat','dCool','dustT','arad','dg','opac_abs','opac_scat','column_in'] # for production - i.e. output column density as a function of tau, plot surface density as an output
+    attributes_to_mean = ['dHeat','dCool','dustT','arad','dg','opac_abs','opac_scat','column_in','line_co1','line_co2','line_hcn1','line_hcn2'] # for production - i.e. output column density as a function of tau, plot surface density as an output
 
     centre_max_surface_density = integrate.quad(lambda z: kernel(z),-1.,1.)[0]
 

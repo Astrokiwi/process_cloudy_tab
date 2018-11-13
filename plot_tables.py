@@ -16,8 +16,10 @@ if ( not 'd_in' in dir() ):
 #     d_in = np.loadtxt("tables_271117.txt",skiprows=1)
 
 #     d_in = np.loadtxt("nodust_301117.txt",skiprows=1)
-    d_in = np.loadtxt("tables_271117.txt",skiprows=1)
+#     d_in = np.loadtxt("tables_271117.txt",skiprows=1)
 #     d_in = np.loadtxt("highden_260118.txt",skiprows=1)
+    d_in = np.loadtxt("linetables_091118.txt",skiprows=1)
+    line_mode = True
 else:
     print("Using table already in memory - hopefully you want to do this!")
 
@@ -57,7 +59,7 @@ for data_id, this_data in enumerate([d_in]):
 
     # use tau for x axis
     #d[:,4] = -np.log(d[:,12])
-    d[:,4] = d[:,12] # not logged! doesn't matter though 
+#     d[:,4] = d[:,12] # not logged! doesn't matter though 
 
 
 
@@ -77,22 +79,29 @@ for data_id, this_data in enumerate([d_in]):
     # d = np.vstack((d.T,x)).T # add to array - 14th column
     # d[:,13] = np.log10(d[:,13]) # and log this
     
-    # create new data (optional) - ratio between scattering and absorption
-    x = d[:,10]/d[:,11]
-    d = np.vstack((d.T,x)).T # add to array - 14th column
+    
+    if line_mode:
+        d[:,5]-=d[:,1] # convert from erg/s/cm^3 to erg/s/(particle)
+        d[:,6]-=d[:,1] # convert from erg/s/cm^3 to erg/s/(particle)
+        d[:,7]-=d[:,1] # convert from erg/s/cm^3 to erg/s/(particle)
+        d[:,8]-=d[:,1] # convert from erg/s/cm^3 to erg/s/(particle)
+    else:
+        # create new data (optional) - ratio between scattering and absorption
+        x = d[:,10]/d[:,11]
+        d = np.vstack((d.T,x)).T # add to array - 14th column
 
-    #d[:,12] = -np.log(d[:,12]) # convert from exp(-tau) to tau # should already be done
-    #d[:,12] = -np.log(np.clip(d[:,12],None,1.+1.e-10)) # convert from exp(-tau) to tau
-    # d[:,12]/=d[:,4] # divide by column density to get more "visibility" at low column density - doesn't work, just gives flat stuff :/
+        #d[:,12] = -np.log(d[:,12]) # convert from exp(-tau) to tau # should already be done
+        #d[:,12] = -np.log(np.clip(d[:,12],None,1.+1.e-10)) # convert from exp(-tau) to tau
+        # d[:,12]/=d[:,4] # divide by column density to get more "visibility" at low column density - doesn't work, just gives flat stuff :/
 
-    #d[:,4:9] = np.log10(d[:,4:9]) # log most dependent variables, plus column density (other independent variables are already logged) (don't log dust fraction)
-    d[:,5:9] = np.log10(d[:,5:9]) # log most dependent variables, BUT NOT column density (other independent variables are already logged) (don't log dust fraction)
-    d[:,10:12] = np.log10(d[:,10:12]) # log opacities too
-    #d[:,12] = np.log10(d[:,12]) # log tau too
+        #d[:,4:9] = np.log10(d[:,4:9]) # log most dependent variables, plus column density (other independent variables are already logged) (don't log dust fraction)
+        d[:,5:9] = np.log10(d[:,5:9]) # log most dependent variables, BUT NOT column density (other independent variables are already logged) (don't log dust fraction)
+        d[:,10:12] = np.log10(d[:,10:12]) # log opacities too
+        #d[:,12] = np.log10(d[:,12]) # log tau too
 
 
-    d[:,6]-=d[:,1] # convert from erg/s/cm^3 to erg/s/(particle)
-    d[:,7]-=d[:,1] # convert from erg/s/cm^3 to erg/s/(particle)
+        d[:,6]-=d[:,1] # convert from erg/s/cm^3 to erg/s/(particle)
+        d[:,7]-=d[:,1] # convert from erg/s/cm^3 to erg/s/(particle)
 
     # find all values for independent variables (except column density)
     denses = np.unique(d[:,1])
@@ -128,8 +137,14 @@ for data_id, this_data in enumerate([d_in]):
     #titles = ["tgrain","heat"]
     #titles = ["tgrain","heat","cool","prad","dg","kabs","kscat","tau","effec_prad"]
     
-    titles = ["tgrain","heat","cool","prad","dg","kabs","kscat","tau","kabsscat"]
-    toplot = [True,False,False,False,True,False,False,False,False]
+    if line_mode:
+        titles = ["CO1","CO2","HCN1","HCN2"]
+        toplot = [True,True,True,True]
+    else:
+        titles = ["tgrain","heat","cool","prad","dg","kabs","kscat","tau","kabsscat"]
+        toplot = [False,False,False,False,False,False,False,True,True]
+
+
 #     toplot = [True]*9
 #     toplot = [True,True,True,True,False,True,True,True,True] # nodust
     
@@ -309,7 +324,9 @@ for cutoff in cutoffs:
 
                 fig.tight_layout()
 #                 fig.savefig("../../figures/table_summary_coldens_nodust"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
-                fig.savefig("../../figures/table_summary_coldens_highdens"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
+#                 fig.savefig("../../figures/table_summary_coldens"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
+                fig.savefig("../../figures/table_summary_lines"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
+#                 fig.savefig("../../figures/table_summary_coldens_highdens"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
                 #fig.savefig("../../figures/table_summary_tau_"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
 #                 fig.savefig("../../figures/table_summary_nodust_tau_"+"".join(colrowline_var)+titles[ifig]+"{}.png".format(cutoff))
 
