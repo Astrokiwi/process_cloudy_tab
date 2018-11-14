@@ -159,7 +159,7 @@ def process_table_tau(taumode,nodustmode,highdensemode,tableFile,lineTableFile=N
                 else:
 #                     print(taumode,lineMode,ncol_in)
                     for i in range(noutp-4,noutp):
-                        alloutp[i][id,it,ii] = np.zeros((ncol_in))-1. # placeholder
+                        alloutp[i][id,it,ii] = np.zeros((ncol_in)) # placeholder
 
     alloutdata = np.empty((noutp,0))
 

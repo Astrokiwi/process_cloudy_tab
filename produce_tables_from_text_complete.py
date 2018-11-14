@@ -43,6 +43,6 @@ def generate_h_weighted_table_for_pool(prams):
     h_weighted_table.generate_h_weighted_table(*prams)
 
 with Pool(processes=64) as pool:
-#     pool.map(process_table_tab_for_pool,table_parameters_taumode)
+    pool.map(process_table_tab_for_pool,table_parameters_taumode)
     pool.map(generate_h_weighted_table_for_pool,table_parameters_mass)
 
