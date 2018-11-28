@@ -115,18 +115,25 @@ def process_table_tau(taumode,nodustmode,highdensemode,tableFile,lineTableFile=N
     if taumode:
         outp_cols_interp = [6,7,5,8,9,10,11,4]
         icol_in = 12
-        outp_dolog = [True,True,False,True,False,False,False,False,False,False,False,False]
+        outp_dolog = [True,True,False,True,False,False,False,False]
     else:
         outp_cols_interp = [6,7,5,8,9,10,11,12]
         icol_in = 4
-        outp_dolog = [True,True,False,True,False,False,False,False,False,False,False,False]
+        outp_dolog = [True,True,False,True,False,False,False,False]
     noutp = len(outp_cols_interp)
     
-    noutp+=4 # for lines
-    linecols = [5,6,7,8]
+    nlines=7
+    noutp+=nlines # for lines
+#     linecols = [5,6,7,8]
+#     linecols = [13,14,15,16,17,18,19,20]
+    linecols = list(range(13,13+nlines))
+    outp_dolog+=[False]*nlines
     line_coldens_col = 4
 
     alloutp = [np.empty((main_table_offsets.nd,main_table_offsets.nt,main_table_offsets.ni),dtype=object) for x in range(noutp)]
+    
+#     print("noutp=",noutp,"linecols=",linecols,"outp_dolog=",outp_dolog)
+#     print(alloutp)
 
 #     nc = d.shape[0]//nd//nt//ni
 #     d_offset = nt*ni*nc*np.arange(nd)
@@ -151,17 +158,20 @@ def process_table_tau(taumode,nodustmode,highdensemode,tableFile,lineTableFile=N
                         col_select = np.interp(column_in,d[index0:index1,icol_in],d[index0:index1,4])
 #                         print(taumode,col_select.shape)
                         for i,icol in enumerate(linecols):
-                            alloutp[i+noutp-4][id,it,ii] = np.interp(col_select,lineData[index0:index1,line_coldens_col],lineData[index0:index1,icol])
+                            alloutp[i+noutp-nlines][id,it,ii] = np.interp(col_select,lineData[index0:index1,line_coldens_col],lineData[index0:index1,icol])
                     else:
 #                         print(taumode,column_in.shape)
                         for i,icol in enumerate(linecols):
-                            alloutp[i+noutp-4][id,it,ii] = np.interp(column_in,lineData[index0:index1,line_coldens_col],lineData[index0:index1,icol])
+                            alloutp[i+noutp-nlines][id,it,ii] = np.interp(column_in,lineData[index0:index1,line_coldens_col],lineData[index0:index1,icol])
                 else:
 #                     print(taumode,lineMode,ncol_in)
-                    for i in range(noutp-4,noutp):
+                    for i in range(noutp-nlines,noutp):
                         alloutp[i][id,it,ii] = np.zeros((ncol_in)) # placeholder
 
     alloutdata = np.empty((noutp,0))
+
+    for iout,outp in enumerate(alloutp):
+        print(iout,outp.shape,(main_table_offsets.nd,main_table_offsets.nt,main_table_offsets.ni))
 
     for id in range(main_table_offsets.nd):
         for it in range(main_table_offsets.nt):

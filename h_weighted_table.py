@@ -35,12 +35,14 @@ def generate_h_weighted_table(nodustmode,highdensemode,table_date,mass=0.0001):
 
     print("Loading table (coldens)")
     chTab = tab_interp.CoolHeatTab(("shrunk_table_labels_"+table_date+"coldens"+suffixes+".dat"),("shrunk_table_"+table_date+"coldens"+suffixes+".dat"),
-                                   ("shrunk_table_labels_"+table_date+"coldens"+suffixes+".dat"),("shrunk_table_"+table_date+"coldens"+suffixes+".dat"))
+                                   ("shrunk_table_labels_"+table_date+"coldens"+suffixes+".dat"),("shrunk_table_"+table_date+"coldens"+suffixes+".dat"),
+                                   True)
     interpTabVec = np.vectorize(chTab.interpTab)
 
     print("Loading table (tau)")
     tauChTab = tab_interp.CoolHeatTab(("shrunk_table_labels_"+table_date+"tau"+suffixes+".dat"),("shrunk_table_"+table_date+"tau"+suffixes+".dat"),
-                                      ("shrunk_table_labels_"+table_date+"tau"+suffixes+".dat"),("shrunk_table_"+table_date+"tau"+suffixes+".dat"))
+                                      ("shrunk_table_labels_"+table_date+"tau"+suffixes+".dat"),("shrunk_table_"+table_date+"tau"+suffixes+".dat"),
+                                      True)
     interpTauTabVec = np.vectorize(tauChTab.interpTab)
 
     def get_table_labels(fname):
@@ -88,7 +90,10 @@ def generate_h_weighted_table(nodustmode,highdensemode,table_date,mass=0.0001):
     #tab_surfs = np.array([0.,0.,0.,0.])
     #tab_dm = np.array([.25,.25,.25,.25])
 
-    attributes_to_mean = ['dHeat','dCool','dustT','arad','dg','opac_abs','opac_scat','column_in','line_co1','line_co2','line_hcn1','line_hcn2'] # for production - i.e. output column density as a function of tau, plot surface density as an output
+    lines = ["co1","co2","hcn1","hcn2","H2_1","H2_2","H2_3"]
+    attributes_to_mean = ['dHeat','dCool','dustT','arad','dg','opac_abs','opac_scat','column_in']# for production - i.e. output column density as a function of tau, plot surface density as an output
+    attributes_to_mean+= ["line_"+line for line in lines]
+#     ,'line_co1','line_co2','line_hcn1','line_hcn2'] 
 
     centre_max_surface_density = integrate.quad(lambda z: kernel(z),-1.,1.)[0]
 
