@@ -85,7 +85,7 @@ module cross_section_calc
 !             close(15)
         end subroutine set_temp
         
-        real(kind=8) function cross_section(m_Msun,h_pc,density_func,surf_func,nz,nr) result(cross)
+        real(kind=16) function cross_section(m_Msun,h_pc,density_func,surf_func,nz,nr) result(cross)
             use constants
             implicit none
 
@@ -106,7 +106,7 @@ module cross_section_calc
             dr = 1.d0/nr
             dz = 2.d0/nz
             dv=dr*dz
-            print *,surf_func(0.,0.),density_func(0.,0.)
+!             print *,surf_func(0.,0.),density_func(0.,0.)
 
             ! dunno how to do trapezium in 3D, let's just do rectangles for integral
 !$OMP  PARALLEL DO private(iz,ir,iw,r,z,threadid)&
@@ -115,10 +115,10 @@ module cross_section_calc
 !$OMP  schedule(dynamic)&
 !$OMP  reduction(+:cross)
             do iz=1,nz-1
-                threadid=OMP_GET_THREAD_NUM()
-                if ( threadid==0 ) then
-                    print *,iz,"/",nz,cross
-                endif
+!                 threadid=OMP_GET_THREAD_NUM()
+!                 if ( threadid==0 ) then
+!                     print *,iz,"/",nz,cross
+!                 endif
                 z = 1.-iz*dz
                 do ir=1,nr-1
                     r = ir*dr
@@ -136,7 +136,8 @@ module cross_section_calc
 !$OMP  END PARALLEL DO
             
 !             cross=cross*dens_cgs/bb_norm*dv*2.d0*PI_8
-            cross=cross*dens_cgs*dv*2.d0*PI_8*(h_pc*pc)**3/bb_norm ! in cm**2
+!             cross=cross*dens_cgs*dv*2.d0*PI_8*(h_pc*pc)**3/bb_norm ! in cm**2
+            cross=cross*dens_cgs*dv*2.d0*PI_8*(h_pc)**3*pc/bb_norm ! in pc**2
 !             print *,cross,"cm**2",log10(cross)
 !             print *,cross/pc**2,"pc**2",log10(cross/pc**2)
 !             print *,cross/(PI_8*(h_pc*pc)**2)," fraction absorbed"
@@ -149,14 +150,38 @@ end module cross_section_calc
 
 program test
     use cross_section_calc
+    use constants
     implicit none
     real(kind=8), external :: constant_density,constant_density_surf ! functions
     real(kind=8) :: val
     
+    real(kind=8), parameter :: logTmin=0.,logTmax=4. ! temperature range for blackbodies
+    integer, parameter :: Tsteps = 5
+
+    real(kind=8), parameter :: logRmin=-4.,logRmax=0. ! log radius range for clouds (pc)
+    integer, parameter :: Rsteps = 10
+
+    real(kind=8), parameter :: logMmin=-9.,logMmax=5. ! log mass range for clouds (Msun)
+    integer, parameter :: Msteps = 30
+    
+    real(kind=8) :: this_T,this_R,this_M
+    integer :: i_t,i_r,i_m
+    
     call load("data/kappa_sample_n4_In7.7_Te3.75.txt",1.d4)
-    call set_temp(1.d2)
-    val=cross_section(1.d-1,0.1d0,constant_density,constant_density_surf,2001,101)
-    print *,val
+    print *,"#T(K) R(pc) M(Msun) CrossSection(cm**2)"
+    do i_t=1,Tsteps
+        this_T = 10.d0**((i_t-1)*(logTmax-logTmin)/(Tsteps-1)+logTmin)
+        call set_temp(this_T)
+        do i_r=1,Rsteps
+            this_R = 10.d0**((i_r-1)*(logRmax-logRmin)/(Rsteps-1)+logRMin)
+    !         this_M = 0.1d0*this_R**2
+            do i_m=1,Msteps
+                this_M = 10.d0**((i_m-1)*(logMmax-logMmin)/(Msteps-1)+logMmin)
+                val=cross_section(this_M,this_R,constant_density,constant_density_surf,2001,1001)
+                print *,this_T,this_R,this_M,val
+            end do
+        end do
+    end do
     
 end program test
 
@@ -184,41 +209,3 @@ real(kind=8) function constant_density_surf(r,z)
     constant_density_surf = sqrt(1.d0-r**2)-z
     return
 end function constant_density_surf
-
-!     def _blackbody(self,wavelength_um,T_K):
-!         """ un-normalised wavelength blackbody - we normalise later by divided by the full integral of the blackbody
-!         """
-!         return (wavelength_um**-5)/(np.exp(constants.blackbody_constant_micronK/(T_K*wavelength_um))-1.)
-! 
-!     def get_weighted_cross_section(self,m_Msun,h_pc,T_K,dens_calc,nz=2001,nr=1001):
-!         """ m_Msun = mass of cloud in solar masses
-!             h_pc = radius of cloud in pc
-!             T_K = temperature of black-body
-!             dens_calc = density_distribution object for calculating density and surface density as a function of r,z
-!             nz = divisions along "line of sight" through cloud (for integration)
-!             nr = radial divisions through cloud (for integration)
-!         """
-! !         if not isinstance(dens_calc,density_distribution):
-! !             raise TypeError("dens_calc must be instanceof density_distribution")
-!         bb_norm = np.trapz(self._blackbody(self._opacity_table["wavelength"],T_K),self._opacity_table["wavelength"])
-! !         bb_norm = integrate.simps(self._blackbody(self._opacity_table["wavelength"],T_K),self._opacity_table["wavelength"])
-! !         bb_norm = integrate.quad(self._blackbody,self._opacity_table["wavelength"].iloc[0],self._opacity_table["wavelength"].iloc[-1],args=T_K,epsabs=0.)[0]
-! 
-!         surf_norm = 3./4./np.pi * m_Msun/h_pc**2 * constants.astro_surf_density_to_cgs
-!         dens_cgs = m_Msun/h_pc**3 * constants.astro_density_to_cgs
-!         
-!         z_steps = np.linspace(-1.,1.,nz)
-!         r_steps = np.linspace(0.,1.,nr)
-!         
-!         ! build giant grids that take up lots of memory
-!         zgrid,rgrid,wavegrid=np.meshgrid(z_steps,r_steps,self._opacity_table["wavelength"],indexing='ij')
-! 
-!         weighted_values = ( self._blackbody(wavegrid,T_K) * self._opacity_table["wavelength"]
-!                             * dens_calc.vec_density(rgrid,zgrid)
-!                             * np.exp(-self._opacity_table["wavelength"]*surf_norm*dens_calc.vec_surface_density(rgrid,zgrid))
-!                             * np.pi * rgrid
-!                             )
-!         print(weighted_values.shape)
-!         print(weighted_values.size)
-!         
-!         sys.exit()
