@@ -8,7 +8,12 @@ import sys
 import numpy as np
 
 # masses = [1.e-11,1.e-10,1.e-9,1.e-8,1.e-7,1.e-6,1.e-5,1.e-4,1.e-3,1.e-2,1.e-1,1.,10.]
-masses = [1.e-4]
+# masses = [1.e-4]
+
+
+masses = [0.1] # for large scale production runs
+
+masses = [1.e-4,1.e-3,1.e-2,1.e-1,1.,10.,100.] # res scale run for large scale production runs
 
 # masses = np.linspace(0.01,1.,20)
 # masses = [0.01,0.05,0.1]

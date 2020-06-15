@@ -170,8 +170,8 @@ def process_table_tau(taumode,nodustmode,highdensemode,tableFile,lineTableFile=N
 
     alloutdata = np.empty((noutp,0))
 
-    for iout,outp in enumerate(alloutp):
-        print(iout,outp.shape,(main_table_offsets.nd,main_table_offsets.nt,main_table_offsets.ni))
+#     for iout,outp in enumerate(alloutp):
+#         print(iout,outp.shape,(main_table_offsets.nd,main_table_offsets.nt,main_table_offsets.ni))
 
     for id in range(main_table_offsets.nd):
         for it in range(main_table_offsets.nt):
