@@ -13,7 +13,7 @@ import numpy as np
 
 masses = [0.1] # for large scale production runs
 
-masses = [1.e-4,1.e-3,1.e-2,1.e-1,1.,10.,100.] # res scale run for large scale production runs
+# masses = [1.e-4,1.e-3,1.e-2,1.e-1,1.,10.,100.] # res scale run for large scale production runs
 
 # masses = np.linspace(0.01,1.,20)
 # masses = [0.01,0.05,0.1]
@@ -21,9 +21,14 @@ masses = [1.e-4,1.e-3,1.e-2,1.e-1,1.,10.,100.] # res scale run for large scale p
 # masses = [1.e-4]
 
 table_parameters = [ [False,True,"highden_260118.txt"],
-                     [False,False,"tables_100818.txt","linetables_281118.txt"],
+                     [False,False,"tables_100818.txt",["linetables_281118.txt","emissivity_140620.txt"]],
                      [True,False,"nodust_301117.txt"]
                                             ]
+
+# table_parameters = [ 
+#                      [False,False,"tables_100818.txt",["linetables_281118.txt","emissivity_140620.txt"]],
+#                     
+#                                             ]
 
 # table_parameters = [ [False,False,"tables_100818.txt","linetables_281118.txt"]
 #                                             ]
