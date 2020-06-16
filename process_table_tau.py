@@ -1,20 +1,23 @@
 import numpy as np
 import time
 import sys
+import pandas as pd
 
 # loadedFile = ""
 # loadedLineFile = ""
 # d_in = None
 
 class axes_offsets:
+    max_error_factor = 1.e-8
+
     def __init__(self,d):
-        self.denses = np.unique(d[:,1])
-        self.intensities = np.unique(d[:,2])
-        self.temps = np.unique(d[:,3])
+        self.denses = d['n0'].unique()
+        self.intensities = d['i0'].unique()
+        self.temps = d['tgas'].unique()
         self.nd = self.denses.size
         self.nt = self.temps.size
         self.ni = self.intensities.size
-        self.nc = d.shape[0]//self.nd//self.nt//self.ni
+        self.nc = len(d)//self.nd//self.nt//self.ni
         self.d_offset = self.nt*self.ni*self.nc*np.arange(self.nd)
         self.i_offset = self.nt*self.nc*(np.arange(self.intensities.size,0,-1)-1) # intensities *decrease* through the array
         self.t_offset = self.nc*np.arange(self.temps.size)
@@ -26,56 +29,50 @@ class axes_offsets:
         if ii<0 or ii>=self.ni: return False
         if it<0 or it>=self.nt: return False
         return True
+    
+    def convert_indices(self,other,id_in,ii_in,it_in):
+        dens = other.denses[id_in]
+        intensity = other.intensities[ii_in]
+        temp = other.temps[it_in]
+        
+        for val,vals in zip([dens,intensity,temp],[self.denses,self.intensities,self.temps]):
+            if val<vals.min()-self.max_error_factor or val>vals.max()+self.max_error_factor:
+                return None,None,None
+        
+        id_out = np.abs(self.denses - dens).argmin() 
+        ii_out = np.abs(self.intensities - intensity).argmin() 
+        it_out = np.abs(self.temps - temp).argmin() 
+        return id_out,ii_out,it_out
+        
 
 def process_table_tau(taumode,nodustmode,highdensemode,tableFile,lineTableFile=None,taumax=5.):
-    global loadedFile,d_in,loadedLineFile,lineData
-    
-    if 'loadedFile' in globals() and tableFile==loadedFile:
-        print("Using table already in memory - hopefully you want to do this!")
-    else:
-        print("Loading in table file ",tableFile)
-        loadedFile = tableFile
-        d_in = np.loadtxt(tableFile,skiprows=1)
-    
     if lineTableFile is not None:
-        if 'loadedLineFile' in globals() and loadedLineFile==lineTableFile:
-            print("Using line table already in memory - hopefully you want to do this!")
-            lineMode = True
-        else:
-            loadedLineFile = lineTableFile
-            print("Loading in line file "+lineTableFile)
-            lineData = np.loadtxt(lineTableFile,skiprows=1)
-            lineMode = True
+            if isinstance(lineTableFile,list):
+                print("Loading in line files ",lineTableFile)
+                lineData = [pd.read_csv(file,delim_whitespace=True) for file in lineTableFile]
+                lineMode = len(lineData)
+            else:
+                loadedLineFile = lineTableFile
+                print("Loading in line file "+lineTableFile)
+                lineData = [pd.read_csv(lineTableFile,delim_whitespace=True)]
+                lineMode = 1
     else:
-        lineMode = False
+        lineMode = 0
 
-# if re-running in same name-space, don't need to reload the data
-# if ( not 'd_in' in dir() ):
-#     print("Loading in table")
-#     # load in giant file
-#     d_in = np.loadtxt("highden_260118.txt",skiprows=1)
-#     #d_in = np.loadtxt("tables_271117.txt",skiprows=1)
-# #     d_in = np.loadtxt("nodust_301117.txt",skiprows=1)
-# #     d_in = np.loadtxt("highden_260118.txt",skiprows=1)
-# #     d_in = np.loadtxt("tables_271117.txt",skiprows=1)
-# #     d_in = np.loadtxt("nodust_301117.txt",skiprows=1)
-# else:
-#     print("Using table already in memory - hopefully you want to do this!")
-
-    d = np.copy(d_in)
+    print("Loading in table file ",tableFile)
+    d = pd.read_csv(tableFile,delim_whitespace=True)
 
     if nodustmode:
         # add in blank data
-        s = d.shape[0]
-        d = np.insert(d,5,np.zeros(s),axis=1)
-        d = np.insert(d,9,np.zeros(s),axis=1)
+        d['tgrain'] = 0
+        d['dg'] = 0
 
     #convert from exp(-tau) to tau
     #d[:,12] = -np.log(d[:,12]) # should already be done now # no, it's not logged, but that's fine.
     main_table_offsets = axes_offsets(d)
     
     if lineMode:
-        line_table_offsets = axes_offsets(lineData)
+        line_table_offsets = [axes_offsets(l) for l in lineData]
 
 #     denses = np.unique(d[:,1])
 #     intensities = np.unique(d[:,2])
@@ -112,66 +109,75 @@ def process_table_tau(taumode,nodustmode,highdensemode,tableFile,lineTableFile=N
 
     f.close()
 
+    print("Processing")
+
     if taumode:
-        outp_cols_interp = [6,7,5,8,9,10,11,4]
-        icol_in = 12
+#         outp_cols_interp = [6,7,5,8,9,10,11,4]
+        outp_cols_interp = ["heat","cool","tgrain","prad","dg","kabs","kscat","colden"]
+        icol_in = "tau"
         outp_dolog = [True,True,False,True,False,False,False,False]
     else:
-        outp_cols_interp = [6,7,5,8,9,10,11,12]
-        icol_in = 4
+#         outp_cols_interp = [6,7,5,8,9,10,11,12]
+        outp_cols_interp = ["heat","cool","tgrain","prad","dg","kabs","kscat","tau"]
+        icol_in = "colden"
         outp_dolog = [True,True,False,True,False,False,False,False]
     noutp = len(outp_cols_interp)
     
-    nlines=7
+#     nlines=7
+    linecols = ["CO1","CO2","HCN1","HCN2","H2_1","H2_2","H2_3","nujnu12","nujnu18","nujnu850"]
+    nlines=len(linecols)
     noutp+=nlines # for lines
-#     linecols = [5,6,7,8]
-#     linecols = [13,14,15,16,17,18,19,20]
-    linecols = list(range(13,13+nlines))
     outp_dolog+=[False]*nlines
-    line_coldens_col = 4
+    line_coldens_col = "colden"
 
     alloutp = [np.empty((main_table_offsets.nd,main_table_offsets.nt,main_table_offsets.ni),dtype=object) for x in range(noutp)]
     
-#     print("noutp=",noutp,"linecols=",linecols,"outp_dolog=",outp_dolog)
-#     print(alloutp)
 
 #     nc = d.shape[0]//nd//nt//ni
 #     d_offset = nt*ni*nc*np.arange(nd)
 #     i_offset = nt*nc*(np.arange(intensities.size,0,-1)-1) # intensities *decrease* through the array
 #     t_offset = nc*np.arange(temps.size)
 
-
+    print("Interpolating")
     for id in range(main_table_offsets.nd):
         for it in range(main_table_offsets.nt):
 #             print(id,it)
             for ii in range(main_table_offsets.ni):
                 index0 = main_table_offsets.d_offset[id]+main_table_offsets.i_offset[ii]+main_table_offsets.t_offset[it]
                 index1 = index0+main_table_offsets.nc
-#                 d_slice = d[index0:index1]
 
                 for i,icol in enumerate(outp_cols_interp):
-                    alloutp[i][id,it,ii] = np.interp(column_in,d[index0:index1,icol_in],d[index0:index1,icol])
-                if lineMode and line_table_offsets.inrange(id,ii,it):
-                    index0 = line_table_offsets.d_offset[id]+line_table_offsets.i_offset[ii]+main_table_offsets.t_offset[it]
-                    index1 = index0+line_table_offsets.nc
-                    if taumode:
-                        col_select = np.interp(column_in,d[index0:index1,icol_in],d[index0:index1,4])
-#                         print(taumode,col_select.shape)
-                        for i,icol in enumerate(linecols):
-                            alloutp[i+noutp-nlines][id,it,ii] = np.interp(col_select,lineData[index0:index1,line_coldens_col],lineData[index0:index1,icol])
-                    else:
-#                         print(taumode,column_in.shape)
-                        for i,icol in enumerate(linecols):
-                            alloutp[i+noutp-nlines][id,it,ii] = np.interp(column_in,lineData[index0:index1,line_coldens_col],lineData[index0:index1,icol])
-                else:
-#                     print(taumode,lineMode,ncol_in)
-                    for i in range(noutp-nlines,noutp):
-                        alloutp[i][id,it,ii] = np.zeros((ncol_in)) # placeholder
+                    alloutp[i][id,it,ii] = np.interp(column_in,d[icol_in][index0:index1],d[icol][index0:index1])
+#                     if icol in d:
+#                         alloutp[i][id,it,ii] = np.interp(column_in,d[icol_in][index0:index1],d[icol][index0:index1])
+#                     else:
+#                         alloutp[i][id,it,ii] = np.zeros((ncol_in))
 
+
+                for i in range(noutp-nlines,noutp):
+                    alloutp[i][id,it,ii] = np.zeros((ncol_in)) # initalize to 0
+
+                if lineMode:
+                    for itable,(ld,lto) in enumerate(zip(lineData,line_table_offsets)):
+                        l_id,l_ii,l_it = lto.convert_indices(main_table_offsets,id,ii,it)
+                        if l_id is not None:
+                            index0 = lto.d_offset[l_id]+lto.i_offset[l_ii]+main_table_offsets.t_offset[l_it]
+                            index1 = index0+lto.nc
+                            if taumode:
+                                col_select = np.interp(column_in,d[icol_in][index0:index1],d['colden'][index0:index1])
+        #                         print(taumode,col_select.shape)
+                                for i,icol in enumerate(linecols): 
+                                    if icol in ld:
+                                        alloutp[i+noutp-nlines][id,it,ii] = np.interp(col_select,ld[line_coldens_col][index0:index1],ld[icol][index0:index1])
+                            else:
+        #                         print(taumode,column_in.shape)
+                                for i,icol in enumerate(linecols):
+                                    if icol in ld:
+                                        alloutp[i+noutp-nlines][id,it,ii] = np.interp(column_in,ld[line_coldens_col][index0:index1],ld[icol][index0:index1])
+
+    print("Collating")
     alloutdata = np.empty((noutp,0))
 
-#     for iout,outp in enumerate(alloutp):
-#         print(iout,outp.shape,(main_table_offsets.nd,main_table_offsets.nt,main_table_offsets.ni))
 
     for id in range(main_table_offsets.nd):
         for it in range(main_table_offsets.nt):
