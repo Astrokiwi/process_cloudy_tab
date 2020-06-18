@@ -90,7 +90,7 @@ def generate_h_weighted_table(nodustmode,highdensemode,table_date,mass=0.0001):
     #tab_surfs = np.array([0.,0.,0.,0.])
     #tab_dm = np.array([.25,.25,.25,.25])
 
-    lines = ["co1","co2","hcn1","hcn2","h2_1","h2_2","h2_3"]
+    lines = ["co1","co2","hcn1","hcn2","h2_1","h2_2","h2_3","12m","8m","850m"]
     attributes_to_mean = ['dHeat','dCool','dustT','arad','dg','opac_abs','opac_scat','column_in']# for production - i.e. output column density as a function of tau, plot surface density as an output
     attributes_to_mean+= ["line_"+line for line in lines]
 #     ,'line_co1','line_co2','line_hcn1','line_hcn2'] 

@@ -124,7 +124,7 @@ def process_table_tau(taumode,nodustmode,highdensemode,tableFile,lineTableFile=N
     noutp = len(outp_cols_interp)
     
 #     nlines=7
-    linecols = ["CO1","CO2","HCN1","HCN2","H2_1","H2_2","H2_3","nujnu12","nujnu18","nujnu850"]
+    linecols = ["CO1","CO2","HCN1","HCN2","H2_1","H2_2","H2_3","nujnu12","nujnu8","nujnu850"]
     nlines=len(linecols)
     noutp+=nlines # for lines
     outp_dolog+=[False]*nlines

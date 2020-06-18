@@ -21,7 +21,7 @@ masses = [0.1] # for large scale production runs
 # masses = [1.e-4]
 
 table_parameters = [ [False,True,"highden_260118.txt"],
-                     [False,False,"tables_100818.txt",["linetables_281118.txt","emissivity_140620.txt"]],
+                     [False,False,"tables_100818.txt",["linetables_281118.txt","emissivity_170620.txt"]],
                      [True,False,"nodust_301117.txt"]
                                             ]
 
