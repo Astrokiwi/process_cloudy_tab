@@ -11,23 +11,27 @@ import numpy as np
 # masses = [1.e-4]
 
 
-masses = [0.1] # for large scale production runs
+# masses = [0.1] # for large scale production runs
+# masses = [1.e-4] # for high res production runs
 
-# masses = [1.e-4,1.e-3,1.e-2,1.e-1,1.,10.,100.] # res scale run for large scale production runs
+masses = [1.e-4,1.e-3,1.e-2,1.e-1,1.,10.,100.] # res scale run for large scale production runs
 
 # masses = np.linspace(0.01,1.,20)
 # masses = [0.01,0.05,0.1]
 
 # masses = [1.e-4]
 
+stochastic_accel = True
+
+# full for production
 table_parameters = [ [False,True,"highden_260118.txt"],
                      [False,False,"tables_100818.txt",["linetables_281118.txt","emissivity_170620.txt"]],
                      [True,False,"nodust_301117.txt"]
                                             ]
 
+# quick for test
 # table_parameters = [ 
-#                      [False,False,"tables_100818.txt",["linetables_281118.txt","emissivity_140620.txt"]],
-#                     
+#                      [False,False,"tables_100818.txt",["linetables_281118.txt","emissivity_170620.txt"]],
 #                                             ]
 
 # table_parameters = [ [False,False,"tables_100818.txt","linetables_281118.txt"]
@@ -53,7 +57,7 @@ def process_table_tab_for_pool(prams):
     process_table_tau.process_table_tau(*prams,taumax=7.)
 
 def generate_h_weighted_table_for_pool(prams):
-    h_weighted_table.generate_h_weighted_table(*prams)
+    h_weighted_table.generate_h_weighted_table(*prams,stochastic_accel=stochastic_accel)
 
 with Pool(processes=64) as pool:
     pool.map(process_table_tab_for_pool,table_parameters_taumode)

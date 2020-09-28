@@ -1,8 +1,12 @@
+#e.g. python fit_constant_density.py data/constant_density_table_120319.dat
+
 import numpy as np
 from scipy import interpolate as interp
 import matplotlib.pyplot as plt
+import sys
 
-indata = np.loadtxt("data/constant_density_table_120319.dat",skiprows=1)
+indata = np.loadtxt(sys.argv[1],skiprows=1)
+print(len(sys.argv))
 
 density_measure = np.log10(indata[:,2]/indata[:,1]**2) # log mass/rad**2, mass in Msun, rad in pc
 temps = np.log10(indata[:,0])

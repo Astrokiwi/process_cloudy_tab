@@ -11,9 +11,9 @@ class axes_offsets:
     max_error_factor = 1.e-8
 
     def __init__(self,d):
-        self.denses = d['n0'].unique()
-        self.intensities = d['i0'].unique()
-        self.temps = d['tgas'].unique()
+        self.denses = np.unique(d['n0'])
+        self.intensities = np.unique(d['i0'])
+        self.temps = np.unique(d['tgas'])
         self.nd = self.denses.size
         self.nt = self.temps.size
         self.ni = self.intensities.size

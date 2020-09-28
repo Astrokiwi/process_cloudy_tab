@@ -7,7 +7,7 @@ amu = 1.66054e-24 # in grams
 mean_molecular_mass = 1.22
 
 
-conversion_factor = 1./(8./3./np.pi/mean_molecular_mass/amu*Msun/pc**2)
+conversion_factor = 1./(2./3./np.pi/mean_molecular_mass/amu*Msun/pc**2)
 
 def full_NH_to_table_density(NH):
     """Convert NH of uniform density cloud to tabulated Msun/pc**2 density.

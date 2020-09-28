@@ -20,13 +20,16 @@ import tab_interp
 # nodustmode = False
 # table_date = "291117"
 
-def generate_h_weighted_table(nodustmode,highdensemode,table_date,mass=0.0001):
+def generate_h_weighted_table(nodustmode,highdensemode,table_date,mass=0.0001,stochastic_accel=False):
     dust_suffix = "nodust" if nodustmode else ""
     if nodustmode and highdensemode:
         raise Exception("Can't have both nodustmode and highdensemode!")
     dense_suffix = "dense" if highdensemode else ""
  
     suffixes = dust_suffix+dense_suffix
+    
+    
+    prefix = "_stochastic_" if stochastic_accel else ""
 
 #     print("H_WEIGHTED_TABLE PROCESS STARTED - ",nodustmode,highdensemode,table_date,mass,suffixes)
 
@@ -95,6 +98,8 @@ def generate_h_weighted_table(nodustmode,highdensemode,table_date,mass=0.0001):
     attributes_to_mean+= ["line_"+line for line in lines]
 #     ,'line_co1','line_co2','line_hcn1','line_hcn2'] 
 
+    logged = [True,True,False,True,False,False,False,False] + [False for x in lines]
+
     centre_max_surface_density = integrate.quad(lambda z: kernel(z),-1.,1.)[0]
 
 
@@ -153,7 +158,7 @@ def generate_h_weighted_table(nodustmode,highdensemode,table_date,mass=0.0001):
 
 
         attrib_out = []
-        for attribute in attributes_to_mean:
+        for attribute,attributelogged in zip(attributes_to_mean,logged):
         #for attribute in ['dustT']:
             if attribute=='column_in':
         #         tau_indices = get_struct_attribute(tabStructs,'ic')
@@ -169,13 +174,26 @@ def generate_h_weighted_table(nodustmode,highdensemode,table_date,mass=0.0001):
             else:
                 vals = get_struct_attribute(tabStructs,attribute)
 #                 print(vals.shape)
-            vals = vals * tab_dm
-            vals = np.sum(vals,1)
+            if attributelogged:
+                vals = 10**vals
+            if stochastic_accel and attribute=='arad':
+                print("Stochastic acceleration!")
+                weighted_vals = vals * tab_dm
+                weighted_vals = np.sum(weighted_vals,1)
+                vals = vals[:,0]
+                arad_prob = weighted_vals/vals
+            else:
+                vals = vals * tab_dm
+                vals = np.sum(vals,1)
+            if attributelogged:
+                vals = np.log10(vals)
             attrib_out.append(vals)
-    
+                            
+        if stochastic_accel:
+            attrib_out.append(np.log10(arad_prob))
         attrib_out = np.array(attrib_out)
-        outfile = "shrunk_table_"+time.strftime("%d%m%y")+"_m{}_hsmooth_tau".format(mass_p)+suffixes+".dat"
-        print("Dumping table:",outfile)
+        outfile = "shrunk_table_"+time.strftime("%d%m%y")+"_m{}{}hsmooth_tau".format(mass_p,prefix)+suffixes+".dat"
+        print("Dumping table:",outfile,attrib_out.shape)
         np.savetxt(outfile,attrib_out.T)
     #for mass_p in np.arange(1,11)*0.01:
     for mass_p in masses:
