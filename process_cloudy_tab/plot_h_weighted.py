@@ -1,7 +1,7 @@
 import numpy as np
 
 from sys import path,exit
-path.append("../src/")
+path.append("./src/")
 import tab_interp
 
 import matplotlib as mpl

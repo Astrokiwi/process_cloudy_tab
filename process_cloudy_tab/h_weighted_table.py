@@ -5,7 +5,7 @@ import scipy.integrate as integrate
 import time
 
 from sys import path,exit
-path.append("../src/")
+path.append("./src/")
 import tab_interp
 
 #nodustmode = this is dust-free gas for the secondary table
